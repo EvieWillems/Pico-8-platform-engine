@@ -1,0 +1,25 @@
+
+-- Tab 1: Check player state
+
+
+
+function check_player_state()   --0 = Idle
+
+	if player.state == 0 then
+		player_idle()
+	end
+end
+
+
+function player_idle()
+
+	if player.animcount < 4 then
+		player.animcount += 1
+	else
+		player.frame += 1
+		player.animcount = 0
+	end				
+    
+    if (player.frame > 4) player.frame = 1
+
+end
