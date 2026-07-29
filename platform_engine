@@ -18,8 +18,11 @@ end
 function _update()
 	
 	check_input()
-	move_entities()
+
 	check_player_state()
+	
+	move_entities()
+	
 	
 
 end

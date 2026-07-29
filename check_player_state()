@@ -7,7 +7,7 @@ function check_player_state()
 
 	if player.state == 0 then  --0 = Idle
 		player_idle()
-	else if player.state == 1 then	-- 1 = Moving
+	elseif player.state == 1 then	-- 1 = Moving
 		player_move()
 	end
 			-- 3 = Slowing
@@ -39,10 +39,24 @@ end
 
 function player_move()
 
-	if (abs(player.momentx) < 2) player.momentx += 0.2*player.facing
+	if (abs(player.momentx) < 2) player.momentx += (0.2*player.facing)
 
-	--if player.state == 1
-	--	if player.facing == -1 then
+	if player.animcount < 4 then	-- Checks ticks elapsed for frame
+		player.animcount += 1
+
+	else
+
+		player.animcount = 0
+
+		if player.frame == 2 then	-- Oscillates back and forth over 2, between 1 and 3 inclusive
+			player.frame += player.animswitch
+		else
+			player.animswitch = player.animswitch * -1
+			player.frame += player.animswitch
+		end
+
+	end	
+		
 
 
 end

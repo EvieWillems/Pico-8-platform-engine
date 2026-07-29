@@ -1,14 +1,14 @@
-
+--Tab 3: Check input
 
 function check_input()
 
-    if not player.state == 4 then -- check the player is not jumping (state 4)
+    if player.state != 3 then -- check the player is not jumping (state 4)
         if btn(0) and btn(1) then   -- If both buttons are pushed, player is slowing
-            if (not player.momentx == 0) player.state = 3
-        else if btn(0) then
+            if (player.momentx != 0) player.state = 3
+        elseif btn(0) then
             player.facing = -1
             player.state = 1
-        else if btn(1) then
+        elseif btn(1) then
             player.facing = 1
             player.state = 1
         end
