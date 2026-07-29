@@ -1,0 +1,17 @@
+--Tab 3: Check input
+
+function check_input()
+
+    if player.state != 3 then -- check the player is not jumping (state 4)
+        if btn(0) and btn(1) then   -- If both buttons are pushed, player is slowing
+            if (player.momentx != 0) player.state = 3
+        elseif btn(0) then
+            player.facing = -1
+            player.state = 1
+        elseif btn(1) then
+            player.facing = 1
+            player.state = 1
+        end
+    end
+
+end

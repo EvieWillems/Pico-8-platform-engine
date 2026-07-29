@@ -1,24 +1,25 @@
 -- Tab 2: Move entities
 
-
 function move_entities()
 
-    player.celx = flr(player.mapxpos/8)
-    player.cely = flr(player.mapxpos/8)
+    player.celx = flr((player.scrxpos+player.momentx)/8)
+    player.cely = flr((player.scrypos+player.momenty)/8)
+    
 
-    check_falling()
-
-end
-
-
-
-function check_falling()
-
-    if 66 >= mget(player.celx,player.cely) >= 64 then
-        --check if player in contact, if so, put them to edge of cel and arrest momentum - IF NOT, add to momenty 
+    if not fget(mget(player.celx, player.cely+2), 0) then
+        player.momenty += 0.3
+        player.scrypos += player.momenty
     else
-        player.momenty += 0.5
+        player.momenty = 0
+        player.scrypos = 8*ceil(player.scrypos/8)
     end
-
+    
+    if (player.momenty > 4.0) player.momenty = 4.2
+    
 
 end
+
+
+
+
+

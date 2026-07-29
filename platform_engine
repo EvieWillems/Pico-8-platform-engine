@@ -4,8 +4,11 @@
 
 function _init()
 
-	player = {scrxpos=60, scrypos=60, mapxpos=60, mapypos=60, celx=6, cely=6, momentx=0, momenty=0, state=0, frame=1, animcount=1, health=1, facingleft = False}
+	player = {scrxpos=65, scrypos=40, mapxpos=0, mapypos=0, celx=0, cely=5, momentx=0, momenty=0, state=0, frame=2, animcount=1, animswitch = 1, health=1, facing = 1}
 
+	-- Notes: mapxpos and ypos track which SCREEN player is on
+	-- facing = -1 if left, 1 if right, to simplify momentum code
+	-- States: 0 = idle, 1 = moving (accelerating), 2 = slowing (momentum, no input, on the ground), 3 = jumping/falling
 
 end
 
@@ -13,10 +16,14 @@ end
 
 
 function _update()
-
-	move_entities()
+	
+	check_input()
 
 	check_player_state()
+	
+	move_entities()
+	
+	
 
 end
 
@@ -27,14 +34,15 @@ function _draw()
 
 	cls()
 
-	if player.facingleft == False then
-		spr((player.state*4)+player.frame, player.scrxpos, player.scrypos)
-		spr((player.state*4)+player.frame+16, player.scrxpos, player.scrypos+8)
+	if player.facing == 1 then
+		spr((player.state*3)+player.frame, player.scrxpos, player.scrypos)
+		spr((player.state*3)+player.frame+16, player.scrxpos, player.scrypos+8)
 	else
-		spr((player.state*4)+player.frame, player.scrxpos, player.scrypos, 1, 1, True)
-		spr((player.state*4)+player.frame+16, player.scrxpos, player.scrypos+8, 1, 1, True)
+		spr((player.state*3)+player.frame, player.scrxpos, player.scrypos, 1, 1, True)
+		spr((player.state*3)+player.frame+16, player.scrxpos, player.scrypos+8, 1, 1, True)
 	end
 
 	map(0, 0, 0, 0, 128, 128, 0)	--x origin on map, y orig on map, xpos on screen, ypos on screen, x height, y height, flag
 
+	
 end
