@@ -6,7 +6,7 @@ function move_entities()
     player.cely = flr((player.scrypos+player.momenty)/8)
     
 
-    if not fget(mget(player.celx, player.cely+2), 0) then
+    if not fget(mget(player.celx, player.cely+2), 0) then -- Detects platforms below player
         player.momenty += 0.3
         player.scrypos += player.momenty
     else
@@ -15,7 +15,13 @@ function move_entities()
     end
     
     if (player.momenty > 4.0) player.momenty = 4.2
-    
+
+    if abs(player.momentx) < 0.4 and player.state == 3 then -- Stops player and sets state to idle when in slow state and within 0.2 of 0 momentum
+        player.momentx = 0
+        player.state = 0
+    end
+
+    player.scrxpos += player.momentx
 
 end
 

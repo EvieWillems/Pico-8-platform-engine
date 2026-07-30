@@ -9,8 +9,10 @@ function check_player_state()
 		player_idle()
 	elseif player.state == 1 then	-- 1 = Moving
 		player_move()
+	elseif player.state == 2 then	-- 3 = Slowing
+		player_slow()
 	end
-			-- 3 = Slowing
+			
 
 end
 
@@ -39,7 +41,7 @@ end
 
 function player_move()
 
-	if (abs(player.momentx) < 2) player.momentx += (0.2*player.facing)
+	if (abs(player.momentx) < 2) player.momentx += (0.5*player.facing)
 
 	if player.animcount < 4 then	-- Checks ticks elapsed for frame
 		player.animcount += 1
@@ -56,8 +58,18 @@ function player_move()
 		end
 
 	end	
-		
 
 
 end
 
+function player_slow()
+
+	if abs(player.momentx) < 0.3 then
+		player.momentx = 0
+		player.state = 0
+	else
+		player.momentx -= (0.2*player.facing)
+		player.state = 1		-- Changes state to running just in time for draw, to reuse the running animation
+	end
+
+end

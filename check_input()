@@ -11,6 +11,10 @@ function check_input()
         elseif btn(1) then
             player.facing = 1
             player.state = 1
+        elseif player.state == 1 then   --If state was moving, and left or right not pressed, state becomes slowing 
+            player.state = 2    -- (Recall that function for slowing resets state to moving each cycle, for animation reasons)
+        else
+            player.state = 0
         end
     end
 
