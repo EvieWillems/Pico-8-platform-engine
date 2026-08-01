@@ -1,14 +1,14 @@
--- Tab 0: Main loop
+-- tab 0: main loop
 
--- :::NB: load platform_engine.p8  :::
+-- :::nb: load platform_engine.p8  :::
 
 function _init()
 
 	player = {scrxpos=65, scrypos=40, mapxpos=0, mapypos=0, celx=0, cely=5, momentx=0, momenty=0, state=0, frame=2, animcount=1, animswitch = 1, health=1, facing = 1}
 
-	-- Notes: mapxpos and ypos track which SCREEN player is on
+	-- notes: mapxpos and ypos track which screen player is on
 	-- facing = -1 if left, 1 if right, to simplify momentum code
-	-- States: 0 = idle, 1 = moving (accelerating), 2 = slowing (momentum, no input, on the ground), 3 = jumping/falling
+	-- states: 0 = idle, 1 = moving (accelerating), 2 = jumping/falling, 3 = slowing (momentum, no input, on the ground)
 
 end
 
@@ -38,11 +38,11 @@ function _draw()
 		spr((player.state*3)+player.frame, player.scrxpos, player.scrypos)
 		spr((player.state*3)+player.frame+16, player.scrxpos, player.scrypos+8)
 	else
-		spr((player.state*3)+player.frame, player.scrxpos, player.scrypos, 1, 1, True)
-		spr((player.state*3)+player.frame+16, player.scrxpos, player.scrypos+8, 1, 1, True)
+		spr((player.state*3)+player.frame, player.scrxpos, player.scrypos, 1, 1, true)
+		spr((player.state*3)+player.frame+16, player.scrxpos, player.scrypos+8, 1, 1, true)
 	end
 
-	map(0, 0, 0, 0, 128, 128, 0)	--x origin on map, y orig on map, xpos on screen, ypos on screen, x height, y height, flag
-
+	map(0, 0, 0, 0, 128, 128, 0)
+	--x origin on map, y orig on map, xpos on screen, ypos on screen, x height, y height, flag
 	
 end

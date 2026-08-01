@@ -1,15 +1,17 @@
 
--- Tab 1: Check player state
+-- tab 1: check player state
 
 
 
 function check_player_state()   
 
-	if player.state == 0 then  --0 = Idle
+	if player.state == 0 then  --0 = idle
 		player_idle()
-	elseif player.state == 1 then	-- 1 = Moving
+	elseif player.state == 1 then	-- 1 = moving
 		player_move()
-	elseif player.state == 2 then	-- 3 = Slowing
+	elseif player.state == 2 then	-- 2 = slowing
+		player_jump()
+	elseif player.state == 3 then	-- 3 = jumping/falling
 		player_slow()
 	end
 			
@@ -21,14 +23,14 @@ function player_idle()
 
 
 
-	if player.animcount < 4 then	-- Checks ticks elapsed for frame
+	if player.animcount < 3 then	-- checks ticks elapsed for frame
 		player.animcount += 1
 
 	else
 
 		player.animcount = 0
 
-		if player.frame == 2 then	-- Oscillates back and forth over 2, between 1 and 3 inclusive
+		if player.frame == 2 then	-- oscillates back and forth over 2, between 1 and 3 inclusive
 			player.frame += player.animswitch
 		else
 			player.animswitch = player.animswitch * -1
@@ -43,14 +45,14 @@ function player_move()
 
 	if (abs(player.momentx) < 2) player.momentx += (0.5*player.facing)
 
-	if player.animcount < 4 then	-- Checks ticks elapsed for frame
+	if player.animcount < 4 then	-- checks ticks elapsed for frame
 		player.animcount += 1
 
 	else
 
 		player.animcount = 0
 
-		if player.frame == 2 then	-- Oscillates back and forth over 2, between 1 and 3 inclusive
+		if player.frame == 2 then	-- oscillates back and forth over 2, between 1 and 3 inclusive
 			player.frame += player.animswitch
 		else
 			player.animswitch = player.animswitch * -1
@@ -69,7 +71,27 @@ function player_slow()
 		player.state = 0
 	else
 		player.momentx -= (0.2*player.facing)
-		player.state = 1		-- Changes state to running just in time for draw, to reuse the running animation
+		player.state = 1		-- changes state to running just in time for draw, to reuse the running animation
+	end
+
+end
+
+function player_jump()
+
+	if fget(mget(player.celx, player.cely+2), 0) then
+		player.momenty -= 3.3
+	elseif player.momenty < -0.5 then
+		player.frame = 1
+	elseif player.momenty < 0.5 then
+		player.frame = 2
+	else
+		player.frame = 3
+	end
+
+	if abs(player.momentx) < 2 then
+		if (btn(0)) player.momentx -= 0.1
+		if (btn(1)) player.momentx += 0.1
+		if (abs(player.momentx) > 0.2) player.facing = player.momentx / abs(player.momentx) -- cunning code: returns -1 if momentx negative, 1 if positive.
 	end
 
 end
