@@ -8,7 +8,8 @@ function _init()
 
 	-- notes: mapxpos and ypos track which screen player is on
 	-- facing = -1 if left, 1 if right, to simplify momentum code
-	-- states: 0 = idle, 1 = moving (accelerating), 2 = jumping/falling, 3 = slowing (momentum, no input, on the ground)
+	-- states: 0 = idle, 1 = moving (accelerating), 2 = jumping/falling,
+			-- 3 = mantling, 4 = dead, 5 = slowing, 6 = injured
 
 end
 
@@ -19,8 +20,10 @@ function _update()
 	
 	check_input()
 
-	check_player_state()
+	check_collision()
 	
+	check_player_state()
+
 	move_entities()
 	
 	
@@ -44,5 +47,6 @@ function _draw()
 
 	map(0, 0, 0, 0, 128, 128, 0)
 	--x origin on map, y orig on map, xpos on screen, ypos on screen, x height, y height, flag
-	
+	--rect(player.celx*8, player.cely*8,(player.celx*8)+8,(player.cely*8)+16)
+
 end

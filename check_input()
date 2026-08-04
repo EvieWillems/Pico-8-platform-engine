@@ -2,25 +2,29 @@
 
 function check_input()
 
-    if player.state != 2 then -- check the player is not jumping (state 2)
-        if btnp(2) and (player.state == 0 or player.state == 1) then -- if player running, slowing or idle and up pressed, jump
-            player.state = 2
-        elseif btn(0) and btn(1) then   -- if both buttons are pushed, player is slowing
-            if (player.momentx != 0) player.state = 2
-        elseif btn(0) then
-            player.facing = -1
-            player.state = 1
-        elseif btn(1) then
-            player.facing = 1
-            player.state = 1
-        elseif player.state == 1 then   --if state was moving, and left or right not pressed, state becomes slowing 
-            player.state = 3    -- (recall that function for slowing resets state to moving each cycle, for animation reasons)
-        else
-            player.state = 0
-        end
-    elseif fget(mget(player.celx, player.cely+2), 0) then
-        player.state = 3
-        player.frame = 2
-    end
+   if player.state != 3 then   -- Check if player mantling
 
+        if not fget(mget(player.celx, player.cely+2), 0) then -- Checks if player on ground - if not, set to jumping
+            player.state = 2
+        elseif player.state != 2 then -- check the player is not jumping (state 2)
+            if btnp(2) and (player.state == 0 or player.state == 1) then -- if player running, slowing or idle and up pressed, jump
+                player.state = 2
+            elseif btn(0) and btn(1) then   -- if both buttons are pushed, player is slowing
+                if (player.momentx != 0) player.state = 5
+            elseif btn(0) then
+                player.facing = -1
+                player.state = 1
+            elseif btn(1) then
+                player.facing = 1
+                player.state = 1
+            elseif player.state == 1 then   --if state is moving, and left or right not pressed, state becomes slowing 
+                player.state = 5    -- (recall that function for slowing resets state to moving each cycle, for animation reasons)
+            else
+                player.state = 0
+            end
+        else
+            player.state = 5
+            player.frame = 2
+        end
+    end
 end

@@ -9,15 +9,29 @@ function check_player_state()
 		player_idle()
 	elseif player.state == 1 then	-- 1 = moving
 		player_move()
-	elseif player.state == 2 then	-- 2 = slowing
+	elseif player.state == 2 then	-- 2 = jumping
 		player_jump()
-	elseif player.state == 3 then	-- 3 = jumping/falling
+	elseif player.state == 3 then	-- 3 = mantling
+		player_mantle()
+--	elseif player,state == 4 then	-- 4 = dead
+--		player_dead()
+	elseif player.state == 5 then	-- 5 = slowing
 		player_slow()
+--	elseif player.state == 6 then	-- 6 = injured
+--		player_injured()
 	end
 			
 
 end
 
+function reset_state(new_state)
+
+	player.animcount = 0
+	player.frame = 1
+	player.animswitch = 1
+	player.state = new_state
+
+end
 
 function player_idle()
 
@@ -43,7 +57,7 @@ end
 
 function player_move()
 
-	if (abs(player.momentx) < 2) player.momentx += (0.5*player.facing)
+	if (abs(player.momentx) < 2.1) player.momentx += (0.5*player.facing)
 
 	if player.animcount < 4 then	-- checks ticks elapsed for frame
 		player.animcount += 1
@@ -59,18 +73,17 @@ function player_move()
 			player.frame += player.animswitch
 		end
 
-	end	
-
+	end
 
 end
 
 function player_slow()
 
-	if abs(player.momentx) < 0.3 then
+	if abs(player.momentx) < 0.7 then
 		player.momentx = 0
 		player.state = 0
 	else
-		player.momentx -= (0.2*player.facing)
+		player.momentx -= (0.3*player.facing)
 		player.state = 1		-- changes state to running just in time for draw, to reuse the running animation
 	end
 
@@ -80,6 +93,10 @@ function player_jump()
 
 	if fget(mget(player.celx, player.cely+2), 0) then
 		player.momenty -= 3.3
+		if (fget(mget(player.celx, player.cely-1), 0)) then		-- If can't jump, remains idle
+			player.state = 0
+			player.momenty = 0
+		end
 	elseif player.momenty < -0.5 then
 		player.frame = 1
 	elseif player.momenty < 0.5 then
@@ -92,6 +109,69 @@ function player_jump()
 		if (btn(0)) player.momentx -= 0.1
 		if (btn(1)) player.momentx += 0.1
 		if (abs(player.momentx) > 0.2) player.facing = player.momentx / abs(player.momentx) -- cunning code: returns -1 if momentx negative, 1 if positive.
+	end
+
+	if fget(mget(player.celx+player.facing, player.cely), 1) and ((player.facing == -1 and btn(0)) or (player.facing == 1 and btn(1))) then
+	-- Checks if touchng an edge flag (f1) while pressing button towards edge - if so, mantles
+		player.momentx = 0
+		player.momenty = 0
+		reset_state(3)	-- Player mantles
+	end
+	
+
+
+end
+
+function player_mantle()
+
+	if player.frame == 1 or player.frame == 2 then
+
+		player.scrxpos = player.celx*8
+		player.scrypos = player.cely*8
+
+		if (btn(3)) reset_state(2)
+
+		if (player.facing == -1 and btn(1)) or (player.facing == 1 and btn(0)) then -- Drop if player pressed away from ledge
+			player.facing *= -1
+			player.state = 2
+			player.momentx += 0.4 * player.facing
+		end
+
+		if btnp(2) then
+			player.animcount = 0
+			player.animswitch = 2	-- If Jump pressed, break breathing animation cycle
+		end
+	end
+
+--	if player.animcount > 0 then	-- Uses animcount and frames to launch player - not quite working
+									-- Suggest breathing animation with frames 1 and 2, launch with frame 3
+
+	if abs(player.animswitch) == 1 then -- Check if player has left breathing animation cycle
+
+		player.animcount += 1	-- Roll on animation count
+
+		if player.animcount == 4 then	-- Check if animation cycle ended
+			player.animcount = 0	-- Reset animation count, 
+			player.frame += player.animswitch	--Add animswitch to frame
+			player.animswitch *= -1		-- Flip animswitch - flip-flops between frames
+		end
+
+	else
+
+		player.frame = 3
+
+		if player.animcount == 4 then	-- Player spends 4 ticks on jummping frame, then jumps
+			
+			reset_state(2)
+			player.momentx = 1*player.facing
+			player.momenty = -3.3
+
+		else
+
+			player.animcount += 1
+		
+		end
+
 	end
 
 end
