@@ -1,16 +1,16 @@
 -- tab 0: main loop
 
--- :::nb: load platform_engine.p8  :::
+-- :::nb: load platform_engine_fork.p8  :::
 
 function _init()
 
-	player = {scrxpos=65, scrypos=40, mapxpos=0, mapypos=0, celx=0, cely=5, momentx=0, momenty=0, state=0, frame=2, animcount=1, animswitch = 1, health=1, facing = 1}
+	player = {scrxpos=56, scrypos=48, mapxpos=0, mapypos=0, celx=0, cely=0, momentx=0, momenty=0, state=0, frame=2, animcount=1, animswitch = 1, health=1, facing = 1}
 
 	-- notes: mapxpos and ypos track which screen player is on
 	-- facing = -1 if left, 1 if right, to simplify momentum code
 	-- states: 0 = idle, 1 = moving (accelerating), 2 = jumping/falling,
-			-- 3 = mantling, 4 = dead, 5 = slowing, 6 = injured
-
+	-- 3 = mantling, 4 = dead, 5 = injured
+	devtracker = 0
 end
 
 
@@ -18,13 +18,10 @@ end
 
 function _update()
 	
-	check_input()
-
-	check_collision()
-	
+	move_entities()
 	check_player_state()
 
-	move_entities()
+	
 	
 	
 
@@ -47,6 +44,8 @@ function _draw()
 
 	map(0, 0, 0, 0, 128, 128, 0)
 	--x origin on map, y orig on map, xpos on screen, ypos on screen, x height, y height, flag
-	--rect(player.celx*8, player.cely*8,(player.celx*8)+8,(player.cely*8)+16)
+	rect(player.celx*8, player.cely*8,(player.celx*8)+8,(player.cely*8)+16)
+	print(player.state)
+	print(devtracker, 0, 8)
 
 end

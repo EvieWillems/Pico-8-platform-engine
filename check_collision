@@ -1,0 +1,30 @@
+--Tab 3: Check collision
+
+function check_collision(object, axis)       
+    -- Function returns a bitfield showing the flags in target cel,
+    --depending on object movement and specified axis to check
+
+    if axis == 'y' then     -- Are we checking y axis collision?
+        if object.momenty >= 0 then         --check if object moving down
+            return fget(mget(object.celx, object.cely+2))  -- Check if object will hit platform while falling
+        else        -- Else: Player moving up
+            return fget(mget(object.celx, object.cely-1))     -- Check if object will "bump head"
+        end
+    else        -- Else: We're checking x axis collision
+        if object.state != 3 then
+            x_collide_value = fget(mget(object.celx+object.facing, object.cely))    
+            check_collide = false
+            check_mantle = false
+            if x_collide_value != 0 then
+                if (x_collide_value == 2 or x_collide_value == 3) check_mantle = true
+                if (x_collide_value%2 != 0) check_collide = true
+            else
+                if (fget(mget(object.celx+object.facing, object.cely+1))%2 != 0) check_collide = true
+            end
+        else
+            check_mantle = true
+        end
+        return check_collide, check_mantle
+    end
+
+end
