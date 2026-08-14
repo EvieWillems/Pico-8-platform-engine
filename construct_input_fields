@@ -1,0 +1,19 @@
+function construct_input_fields(object)
+
+    if object.ent_type == 'player' then
+        object.input_field = btn()
+        if (jump_held == true) object.input_field = (object.input_field & 0b1011) -- Scrubs 4 (btn 2) out of bitfield if jump held
+        if btn(2) then
+            jump_held = true
+        else
+            jump_held = false
+        end
+    end
+
+end
+
+function ai_inputs(ai_ent)
+
+end
+
+

@@ -1,52 +1,54 @@
 -- tab 2: move entities
 
-function move_entities()
+function move_entities(object)
 
-    player.momenty += 0.3
-    if (player.momenty > 4.0) player.momenty = 4.0
+    object.momenty += 0.3
+    if (object.momenty > 4.0) object.momenty = 4.0
 
-    if (abs(player.momentx) > 2) player.momentx = 2*player.facing
+    if (abs(object.momentx) > 2) object.momentx = 2*object.facing
 
-    player.celx = flr((player.scrxpos+player.momentx+4)/8)
-    player.cely = flr((player.scrypos+player.momenty)/8)
+    object.celx = flr((object.scrxpos+object.momentx+4)/8)
+    object.cely = flr((object.scrypos+object.momenty)/8)
 
-    collide_value = check_collision(player, 'y')    -- Check_collision returns bitfield, collide_value avoids calling the function over and over
+    collide_value = check_object_collision(object, 'y')    -- check_object_collision returns bitfield, collide_value avoids calling the function over and over
     
-    if player.state != 3 then                   -- Don't do collision check if player mantling
-        if (collide_value%2) == 1 then          -- Cunning code: Checks if flag bitfield is even - only odd if flag 0 in field
-            if player.momentx != 0 then          -- Important: check if player has x momentum; if so, running.
-                player.state = 1                -- Don't use reset_state, to preserve frame
+    if object.state != 3 then                   -- don't do collision check if object mantling
+        if (collide_value%2) == 1 then          -- cunning code: checks if flag bitfield is even - only odd if flag 0 in field
+            if object.momentx != 0 then          -- important: check if object has x momentum; if so, running.
+                object.state = 1                -- don't use reset_state, to preserve frame
             else
-                player.state = 0
+                object.state = 0
             end
-            if player.momenty < 0 then
-                player.scrypos = 8*(player.cely+1)
+            if object.momenty < 0 then
+                object.scrypos = 8*(object.cely+1)
             else
-                player.scrypos = 8*player.cely
+                object.scrypos = 8*object.cely
             end
-            player.momenty = 0
+            object.momenty = 0
         else
-            player.scrypos += player.momenty
-            player.state = 2
+            object.scrypos += object.momenty
+            object.state = 2
         end
     end
-                                                        -- NB for x collision: tracks one cel in front of player, by facing
-    if player.state == 1 or player.state == 2 then      -- If player moving or jumping
+                                                        -- nb for x collision: tracks one cel in front of object, by facing
+    if object.state == 1 or object.state == 2 then      -- if object moving or jumping
         
-        collide, mantle = check_collision(player, 'x')
+        collide_check = check_object_collision(object, 'x')
 
-        if collide == true then      -- Check if player should be colliding
-            player.momentx = 0
-            player.scrxpos = 8*(player.celx)
+        --collide, mantle = check_object_collision(object, 'x')
+        devtracker = collide_check & 0b0001
+        if ((collide_check & 0b0001) == 1) then      -- check if object should be colliding - bitfield checks for flag 0
+            object.momentx = 0
+            object.scrxpos = 8*(object.celx)
         else
-            player.scrxpos += player.momentx
+            object.scrxpos += object.momentx
         end
 
-        if player.state == 2 and mantle == true and (btn(0) or btn(1)) then     -- Check if player should be mantling
-            reset_state(player, 3)
-            player.animswitch = -1
-            player.momenty = 0
-            player.scrypos = 8*player.cely
+        if object.state == 2 and ((collide_check & 0b0010) == 2) and ((object.input_field & 0b0011) != 0) then     -- check if object should be mantling - pressing left or right while hitting flag 1
+            reset_state(object, 3)      -- Mantle check done here for function order
+            object.animswitch = -1
+            object.momenty = 0
+            object.scrypos = 8*object.cely
         end
 
     end

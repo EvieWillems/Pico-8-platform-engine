@@ -1,0 +1,192 @@
+
+-- tab 1: check object state
+
+
+
+function check_object_state(object)   
+
+	if object.state == 0 then  --0 = idle
+		object_idle(object)
+	elseif object.state == 1 then	-- 1 = moving
+		object_move(object)
+	elseif object.state == 2 then	-- 2 = jumping
+		object_jump(object)
+	elseif object.state == 3 then	-- 3 = mantling
+		object_mantle(object)
+--	elseif object.state == 4 then	-- 4 = dead
+--		object_dead()
+--	elseif object.state == 5 then	-- 5 = injured
+--		object_injured()
+	end
+
+end
+
+function reset_state(object, new_state)
+
+	object.animcount = 0
+	object.frame = 2
+	object.animswitch = 1
+	object.state = new_state
+
+end
+
+function object_idle(object)
+
+	object.momentx = 0
+	object.momenty = 0
+
+	if object.animcount < 3 then	-- checks ticks elapsed for frame
+		object.animcount += 1
+
+	else
+
+		object.animcount = 0
+
+		if object.frame == 2 then	-- oscillates back and forth over 2, between 1 and 3 inclusive
+			object.frame += object.animswitch
+		else
+			object.animswitch = object.animswitch * -1
+			object.frame += object.animswitch
+		end
+
+	end
+
+
+	
+	if (object.input_field & 0b0100) == 4 then				-- checks input to leave state
+		object.cely -= 1		-- change cely to check collision
+		object.momenty = -3.3		-- change momentum to check collision
+		if ((check_object_collision(object, 'y') & 0b0001) == 1) then		-- Checks bitfield for flag 0 (0b0001)
+			object.state = 0
+			object.momenty = 0
+		else
+			reset_state(object, 2)		-- else: object has headroom, change state to jumping
+		end								-- nb: this all needs doing out of order to avoid drawing while in state 2
+	elseif (object.input_field & 0b0001) == 1 then
+		object.facing = -1
+		reset_state(object, 1)
+		object_move(object)
+	elseif (object.input_field & 0b010) == 2 then
+		object.facing = 1
+		reset_state(object, 1)
+		object_move(object)
+	end
+
+end
+
+function object_move(object)
+
+
+	if (object.facing == -1 and ((object.input_field & 0b0001) == 1)) or (object.facing == 1 and ((object.input_field & 0b0010) == 2)) then	-- checks if button pushed in direction of travel
+		if (object.momentx == 0) object.momentx += (0.2*object.facing)	-- gives a little boost when starting off
+		object.momentx += (0.5*object.facing)	-- accelerates
+	else
+		if abs(object.momentx) < 0.6 then		-- if within 0.6 of stopping, stops
+			object.momentx = 0
+			object.state = 0
+		else									-- else: slows down
+			object.momentx -= (0.5*object.facing)
+			object.state = 1					-- (function object_slow moved here) 
+		end							
+	end
+
+	if ((object.input_field & 0b0001) == 1) object.facing = -1
+	if ((object.input_field & 0b0010) == 2) object.facing = 1
+
+	if object.animcount < 4 then	-- checks ticks elapsed for frame
+		object.animcount += 1
+
+	else
+
+		object.animcount = 0
+
+		if object.frame == 2 then	-- oscillates back and forth over 2, between 1 and 3 inclusive
+			object.frame += object.animswitch
+		else
+			object.animswitch = object.animswitch * -1
+			object.frame += object.animswitch
+		end
+
+	end
+
+	if (object.input_field & 0b0100) == 4 then			-- check if jump hit to exit state
+		object.cely -= 1		-- change cely to check collision
+		object.momenty = -3.3		-- change momentum to check collision
+		if ((check_object_collision(object, 'y') & 0b0001) == 1) then		-- Checks bitfield for flag 0 (0b0001)
+            object.state = 1
+			object.momenty = 0
+		else
+			reset_state(object, 2)		-- else: object has headroom, change state to jumping
+		end								-- nb: this all needs doing out of order to avoid drawing while in state 2
+	end
+
+end
+
+
+function object_jump(object)
+
+	if object.momenty < -0.5 then
+		object.frame = 1
+	elseif object.momenty < 0.5 then
+		object.frame = 2
+	else
+		object.frame = 3
+	end
+
+	if abs(object.momentx) < 2 then
+		if ((object.input_field & 0b0001) == 1) object.momentx -= 0.1
+		if ((object.input_field & 0b0010) == 2) object.momentx += 0.1
+		if (abs(object.momentx) > 0.2) object.facing = object.momentx / abs(object.momentx) -- cunning code: returns -1 if momentx negative, 1 if positive.
+	end
+
+end
+
+function object_mantle(object)
+
+	if abs(object.animswitch) == 1 then
+
+		object.scrxpos = object.celx*8
+		object.scrypos = object.cely*8
+
+		if (object.input_field & 0b1111) == 8 then  -- Checks if only down (just btn 3 = 0b1000) pressed
+			reset_state(object, 2)
+			object.momenty = -0.2
+		end
+
+		if (object.facing == -1 and ((object.input_field & 0b0010) == 2)) or (object.facing == 1 and ((object.input_field & 0b0001) == 1)) then -- drop if object pressed away from ledge
+			object.facing *= -1
+			reset_state(object, 2)
+			object.momentx += 0.4 * object.facing
+			object.momenty = -0.2
+		elseif (object.input_field & 0b0100) == 4 then -- if jump pressed, break breathing animation cycle
+			object.animcount = 0
+			object.animswitch = 2	
+		end
+	
+		object.animcount += 1	-- roll on animation count
+
+		if object.animcount > 8 then	-- check if animation cycle ended
+			object.animcount = 0	-- reset animation count, 
+			object.frame += object.animswitch	--add animswitch to frame
+			object.animswitch *= -1		-- flip animswitch - flip-flops between frames
+		end
+
+	else
+
+		object.frame = 3
+
+		if object.animcount == 4 then	-- object spends 4 ticks on jumping frame, then jumps
+			
+			reset_state(object, 2)
+			object.momentx = 1*object.facing
+			object.momenty = -3.3
+
+		else
+
+			object.animcount += 1
+		
+		end
+
+	end
+
+end
