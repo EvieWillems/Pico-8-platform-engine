@@ -1,3 +1,6 @@
+-- Tab 4: Construct_input_fields
+
+
 function construct_input_fields(object)
 
     if object.ent_type == 'player' then
@@ -8,12 +11,28 @@ function construct_input_fields(object)
         else
             jump_held = false
         end
+    else
+        object.celx += object.facing
+        object.input_field = np_object_input(object)
+        object.celx = flr((object.scrxpos+object.momentx+4)/8)
     end
 
 end
 
-function ai_inputs(ai_ent)
+function np_object_input(object)
+
+    if object.facing == 1 then       -- This could be made more elegant, I feel
+        if (check_map_collision(object, 'y') & f_collide) == f_collide then
+            return right_fld
+        else
+            return left_fld
+        end
+    else
+        if (check_map_collision(object, 'y') & f_collide) == f_collide then
+            return left_fld
+        else
+            return right_fld
+        end
+    end
 
 end
-
-

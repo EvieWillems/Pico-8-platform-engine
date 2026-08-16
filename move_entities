@@ -5,19 +5,31 @@ function move_entities(object)
     object.momenty += 0.3
     if (object.momenty > 4.0) object.momenty = 4.0
 
-    if (abs(object.momentx) > 2) object.momentx = 2*object.facing
+    if (abs(object.momentx) > object.top_spd) object.momentx = object.top_spd*object.facing
 
+    if object.ent_type == 'player' and (object.inv_count == 0) then
+        if check_actor_collision(object) == 'enemy' then
+            object.inv_count = 1
+            reset_state(object, 2)
+            object.momentx = -1*object.facing
+            object.momenty = -2.5
+            object.health -= 1
+        end
+    end
+    
     object.celx = flr((object.scrxpos+object.momentx+4)/8)
     object.cely = flr((object.scrypos+object.momenty)/8)
 
-    collide_value = check_object_collision(object, 'y')    -- check_object_collision returns bitfield, collide_value avoids calling the function over and over
+    collide_value = check_map_collision(object, 'y')    -- check_object_collision returns bitfield, collide_value avoids calling the function over and over
     
     if object.state != 3 then                   -- don't do collision check if object mantling
-        if (collide_value%2) == 1 then          -- cunning code: checks if flag bitfield is even - only odd if flag 0 in field
-            if object.momentx != 0 then          -- important: check if object has x momentum; if so, running.
-                object.state = 1                -- don't use reset_state, to preserve frame
-            else
-                object.state = 0
+        if (collide_value%2) == 1 then  -- cunning code: checks if flag bitfield is even - only odd if flag 0 in field
+            if object.inv_count == 0 then         -- If not injured, change state if on solid ground
+                if object.momentx != 0 then          -- important: check if object has x momentum; if so, running.
+                    object.state = 1                -- don't use reset_state, to preserve frame
+                else
+                    object.state = 0
+                end
             end
             if object.momenty < 0 then
                 object.scrypos = 8*(object.cely+1)
@@ -33,18 +45,18 @@ function move_entities(object)
                                                         -- nb for x collision: tracks one cel in front of object, by facing
     if object.state == 1 or object.state == 2 then      -- if object moving or jumping
         
-        collide_check = check_object_collision(object, 'x')
+        collide_check = check_map_collision(object, 'x')
 
         --collide, mantle = check_object_collision(object, 'x')
-        devtracker = collide_check & 0b0001
-        if ((collide_check & 0b0001) == 1) then      -- check if object should be colliding - bitfield checks for flag 0
+        devtracker = collide_check & f_collide
+        if ((collide_check & f_collide) == f_collide) then      -- check if object should be colliding - bitfield checks for flag 0
             object.momentx = 0
             object.scrxpos = 8*(object.celx)
         else
             object.scrxpos += object.momentx
         end
 
-        if object.state == 2 and ((collide_check & 0b0010) == 2) and ((object.input_field & 0b0011) != 0) then     -- check if object should be mantling - pressing left or right while hitting flag 1
+        if object.state == 2 and object.inv_count == 0 and ((collide_check & f_mantle) == f_mantle) and ((object.input_field & 0b0011) != 0) then     -- check if object should be mantling - pressing left or right while hitting flag 1
             reset_state(object, 3)      -- Mantle check done here for function order
             object.animswitch = -1
             object.momenty = 0
@@ -52,6 +64,9 @@ function move_entities(object)
         end
 
     end
+
+    
+
 
 
 end

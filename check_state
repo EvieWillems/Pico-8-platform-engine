@@ -14,10 +14,10 @@ function check_object_state(object)
 	elseif object.state == 3 then	-- 3 = mantling
 		object_mantle(object)
 --	elseif object.state == 4 then	-- 4 = dead
---		object_dead()
---	elseif object.state == 5 then	-- 5 = injured
---		object_injured()
+--		object_dead(object)
 	end
+
+	if (object.inv_count == 24) object.inv_count = 0
 
 end
 
@@ -53,20 +53,20 @@ function object_idle(object)
 
 
 	
-	if (object.input_field & 0b0100) == 4 then				-- checks input to leave state
+	if (object.input_field & up_fld) == up_fld then				-- checks input to leave state
 		object.cely -= 1		-- change cely to check collision
 		object.momenty = -3.3		-- change momentum to check collision
-		if ((check_object_collision(object, 'y') & 0b0001) == 1) then		-- Checks bitfield for flag 0 (0b0001)
+		if ((check_map_collision(object, 'y') & f_collide) == f_collide) then		-- Checks bitfield for flag 0 (0b0001)
 			object.state = 0
 			object.momenty = 0
 		else
 			reset_state(object, 2)		-- else: object has headroom, change state to jumping
 		end								-- nb: this all needs doing out of order to avoid drawing while in state 2
-	elseif (object.input_field & 0b0001) == 1 then
+	elseif (object.input_field & left_fld) == left_fld then
 		object.facing = -1
 		reset_state(object, 1)
 		object_move(object)
-	elseif (object.input_field & 0b010) == 2 then
+	elseif (object.input_field & right_fld) == right_fld then
 		object.facing = 1
 		reset_state(object, 1)
 		object_move(object)
@@ -77,7 +77,7 @@ end
 function object_move(object)
 
 
-	if (object.facing == -1 and ((object.input_field & 0b0001) == 1)) or (object.facing == 1 and ((object.input_field & 0b0010) == 2)) then	-- checks if button pushed in direction of travel
+	if (object.facing == -1 and ((object.input_field & left_fld) == left_fld)) or (object.facing == 1 and ((object.input_field & right_fld) == right_fld)) then	-- checks if button pushed in direction of travel
 		if (object.momentx == 0) object.momentx += (0.2*object.facing)	-- gives a little boost when starting off
 		object.momentx += (0.5*object.facing)	-- accelerates
 	else
@@ -90,8 +90,8 @@ function object_move(object)
 		end							
 	end
 
-	if ((object.input_field & 0b0001) == 1) object.facing = -1
-	if ((object.input_field & 0b0010) == 2) object.facing = 1
+	if ((object.input_field & left_fld) == left_fld) object.facing = -1
+	if ((object.input_field & right_fld) == right_fld) object.facing = 1
 
 	if object.animcount < 4 then	-- checks ticks elapsed for frame
 		object.animcount += 1
@@ -109,10 +109,10 @@ function object_move(object)
 
 	end
 
-	if (object.input_field & 0b0100) == 4 then			-- check if jump hit to exit state
+	if (object.input_field & up_fld) == up_fld then			-- check if jump hit to exit state
 		object.cely -= 1		-- change cely to check collision
 		object.momenty = -3.3		-- change momentum to check collision
-		if ((check_object_collision(object, 'y') & 0b0001) == 1) then		-- Checks bitfield for flag 0 (0b0001)
+		if ((check_map_collision(object, 'y') & f_collide) == f_collide) then		-- Checks bitfield for flag 0 (0b0001)
             object.state = 1
 			object.momenty = 0
 		else
@@ -125,7 +125,10 @@ end
 
 function object_jump(object)
 
-	if object.momenty < -0.5 then
+	if object.inv_count != 0 then
+		object.inv_count += 1
+		object.frame = 3
+	elseif object.momenty < -0.5 then
 		object.frame = 1
 	elseif object.momenty < 0.5 then
 		object.frame = 2
@@ -133,10 +136,10 @@ function object_jump(object)
 		object.frame = 3
 	end
 
-	if abs(object.momentx) < 2 then
-		if ((object.input_field & 0b0001) == 1) object.momentx -= 0.1
-		if ((object.input_field & 0b0010) == 2) object.momentx += 0.1
-		if (abs(object.momentx) > 0.2) object.facing = object.momentx / abs(object.momentx) -- cunning code: returns -1 if momentx negative, 1 if positive.
+	if abs(object.momentx) < 2 and (object.inv_count == 0 or object.inv_count > 24) then	-- Respond to input while jumping if in correct speed bound, and not injured
+		if ((object.input_field & left_fld) == left_fld) object.momentx -= 0.1
+		if ((object.input_field & right_fld) == right_fld) object.momentx += 0.1
+		if ((abs(object.momentx) > 0.2) and object.inv_count == 0) object.facing = object.momentx / abs(object.momentx) -- cunning code: returns -1 if momentx negative, 1 if positive.
 	end
 
 end
@@ -148,17 +151,17 @@ function object_mantle(object)
 		object.scrxpos = object.celx*8
 		object.scrypos = object.cely*8
 
-		if (object.input_field & 0b1111) == 8 then  -- Checks if only down (just btn 3 = 0b1000) pressed
+		if (object.input_field & 0b1111) == 8 then  -- Checks if ONLY down (just btn 3 = 0b1000) pressed
 			reset_state(object, 2)
 			object.momenty = -0.2
 		end
 
-		if (object.facing == -1 and ((object.input_field & 0b0010) == 2)) or (object.facing == 1 and ((object.input_field & 0b0001) == 1)) then -- drop if object pressed away from ledge
+		if (object.facing == -1 and ((object.input_field & right_fld) == right_fld)) or (object.facing == 1 and ((object.input_field & left_fld) == left_fld)) then -- drop if object pressed away from ledge
 			object.facing *= -1
 			reset_state(object, 2)
 			object.momentx += 0.4 * object.facing
 			object.momenty = -0.2
-		elseif (object.input_field & 0b0100) == 4 then -- if jump pressed, break breathing animation cycle
+		elseif (object.input_field & up_fld) == 4 then -- if jump pressed, break breathing animation cycle
 			object.animcount = 0
 			object.animswitch = 2	
 		end
