@@ -13,7 +13,9 @@ function check_object_state(object)
 		object_jump(object)
 	elseif object.state == 3 then	-- 3 = mantling
 		object_mantle(object)
---	elseif object.state == 4 then	-- 4 = dead
+	elseif object.state == 4 then	-- 4 = climbing
+		object_climb(object)
+--	elseif object.state == 5 then	-- 5 = dead
 --		object_dead(object)
 	end
 
@@ -51,6 +53,7 @@ function object_idle(object)
 
 	end
 
+	if (btn(2) and (check_map_collision(object, 'y') & f_climb) == f_climb) reset_state(object, 4)
 
 	
 	if (object.input_field & up_fld) == up_fld then				-- checks input to leave state
@@ -110,20 +113,32 @@ function object_move(object)
 	end
 
 	if (object.input_field & up_fld) == up_fld then			-- check if jump hit to exit state
-		object.cely -= 1		-- change cely to check collision
-		object.momenty = -3.3		-- change momentum to check collision
-		if ((check_map_collision(object, 'y') & f_collide) == f_collide) then		-- Checks bitfield for flag 0 (0b0001)
-            object.state = 1
-			object.momenty = 0
+		if (check_map_collision(object, 'y') & f_climb) == f_climb then
+			reset_state(object, 4)
 		else
-			reset_state(object, 2)		-- else: object has headroom, change state to jumping
-		end								-- nb: this all needs doing out of order to avoid drawing while in state 2
+			object.cely -= 1		-- change cely to check collision
+			object.momenty = -3.3		-- change momentum to check collision
+			if ((check_map_collision(object, 'y') & f_collide) == f_collide) then		-- Checks bitfield for flag 0 (0b0001)
+				object.state = 1
+				object.momenty = 0
+			else
+				reset_state(object, 2)		-- else: object has headroom, change state to jumping
+			end								-- nb: this all needs doing out of order to avoid drawing while in state 2
+		end
 	end
 
 end
 
 
 function object_jump(object)
+
+	if object.inv_count == 0 then
+        if ((collide_value & f_climb) == f_climb) and btn(2) then
+            object.momentx = 0
+            object.momenty = 0
+            reset_state(object, 4)
+        end
+    end
 
 	if object.inv_count != 0 then
 		object.inv_count += 1
@@ -141,6 +156,8 @@ function object_jump(object)
 		if ((object.input_field & right_fld) == right_fld) object.momentx += 0.1
 		if ((abs(object.momentx) > 0.2) and object.inv_count == 0) object.facing = object.momentx / abs(object.momentx) -- cunning code: returns -1 if momentx negative, 1 if positive.
 	end
+
+
 
 end
 
@@ -191,5 +208,11 @@ function object_mantle(object)
 		end
 
 	end
+
+end
+
+function object_climb(object)
+
+
 
 end

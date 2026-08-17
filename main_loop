@@ -10,16 +10,19 @@ function _init()
 
 	entities = {player, npc}
 
+	jump_held = 0
+
 	-- notes: mapxpos and ypos track which screen object is on
 	-- facing = -1 if left, 1 if right, to simplify momentum code
 	-- states: 0 = idle, 1 = moving (accelerating), 2 = jumping/falling,
-	-- 3 = mantling, 4 = dead, 5 = injured
+	-- 3 = mantling, 4 = dead,  5 = climbing
 	devtracker = 0
 
 	-- Flags 0 - 3 reserved for map functions, flags 4 - 7 generally for actors
 	
 	f_collide = 0b0001	-- Flag 0 = collision
 	f_mantle = 0b0010	-- Flag 1 = mantle
+	f_climb = 0b0100 -- Flag 2 = climb
 
 	left_fld = 0b0001
 	right_fld = 0b0010
@@ -52,14 +55,20 @@ end
 function _draw()
 
 	cls()
+	
+	map(0, 0, 0, 0, 128, 128, 0)
+	
 	for entity in all(entities) do
     	draw_objects(entity)
 	end
 --	print(devtracker, 0, 8)
+	
 
 end
 
 function draw_objects(object)
+
+	
 
 	if flr(object.inv_count/4)%2 == 0 then		--animcount more than 12 on inv frames
 		if object.facing == 1 then
@@ -70,7 +79,7 @@ function draw_objects(object)
 			spr((object.state*3)+object.frame+16, object.scrxpos, object.scrypos+8, 1, 1, true)
 		end
 
-		map(0, 0, 0, 0, 128, 128, 0)
+		
 		--x origin on map, y orig on map, xpos on screen, ypos on screen, x height, y height, flag
 		--rect(object.celx*8, object.cely*8,(object.celx*8)+8,(object.cely*8)+16)
 		if (object.ent_type == 'player') print(object.state, 0, 0)

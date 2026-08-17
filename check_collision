@@ -8,11 +8,11 @@ function check_map_collision(object, axis)
         if axis == 'y' then     -- are we checking y axis collision?
             if object.momenty >= 0 then         --check if object moving down
                 return fget(mget(object.celx, object.cely+2))  -- check if object will hit platform while falling
-            else        -- else: player moving up
-                return fget(mget(object.celx, object.cely))     -- check if object will "bump head"
+            else        -- else: player moving up, or stationary
+                return fget(mget(object.celx, object.cely))     -- check if object will "bump head", hit ladder
             end
         else        -- else: we're checking x axis collision
-            if object.state != 3 then
+            if object.state != 3 and object.state !=4 then
                 
                 x_collide_field = fget(mget(object.celx+object.facing, object.cely))
 
